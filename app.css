@@ -1,0 +1,94 @@
+/* Shared styles and design tokens (from the DPL UI mockup). Plain CSS, no framework,
+   no web fonts: the app must work offline and stay light on the Pi 3 kiosk. */
+:root {
+  --bg: #080c11;
+  --bg-2: #0d131a;
+  --panel: #111921;
+  --panel-2: #17212b;
+  --line: #243241;
+  --line-strong: #31455a;
+  --text: #f4f7fa;
+  --muted: #93a3b3;
+  --gold: #f2b632;
+  --gold-hi: #ffd76a;
+  --gold-ink: #1d1503;
+  --green: #1fae4b;
+  --green-hi: #2bd15f;
+  --red: #d93636;
+  --red-hi: #f04848;
+  --blue: #1f6fd1;
+  --blue-hi: #2f86f0;
+  --accent: var(--gold);
+  --accent-ink: var(--gold-ink);
+  --danger: var(--red);
+  --ok: var(--green);
+  --radius: 12px;
+  --tap: 56px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "DejaVu Sans", sans-serif;
+  --font-display: "DejaVu Sans Condensed", "Roboto Condensed", "Arial Narrow", "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); line-height: 1.45; }
+a { color: var(--gold); }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0 0 .5em; font-weight: 800; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+.muted { color: var(--muted); }
+.gold { color: var(--gold); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.stack > * + * { margin-top: 16px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.num { font-variant-numeric: tabular-nums; }
+
+button, .btn {
+  min-height: var(--tap); padding: 0 20px; border-radius: 10px; border: 1px solid var(--line-strong);
+  background: var(--panel-2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+  touch-action: manipulation;
+}
+button:hover:not(:disabled), .btn:hover { border-color: var(--muted); }
+button.primary, .btn.primary { background: var(--blue); border-color: var(--blue-hi); color: #fff; }
+button.go { background: var(--green); border-color: var(--green-hi); color: #fff; }
+button.danger, button.stop { background: var(--red); border-color: var(--red-hi); color: #fff; }
+button.gold { background: var(--gold); border-color: var(--gold-hi); color: var(--gold-ink); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+label { display: block; font-weight: 600; margin-bottom: 6px; }
+input[type=password], input[type=text], input[type=number], select, textarea {
+  width: 100%; min-height: 48px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line-strong);
+  background: var(--bg-2); color: var(--text); font: inherit; font-size: 17px;
+}
+textarea { padding: 10px 12px; min-height: 110px; }
+input:disabled, select:disabled { opacity: .75; }
+.error { color: var(--red-hi); min-height: 1.4em; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--panel-2); color: var(--muted); }
+.badge.ok { background: rgba(31,174,75,.16); color: var(--green-hi); }
+.badge.warn { background: rgba(217,54,54,.16); color: var(--red-hi); }
+.badge.gold { background: rgba(242,182,50,.16); color: var(--gold); }
+code { background: var(--bg-2); padding: 2px 6px; border-radius: 6px; }
+
+.logo { display: block; height: 48px; width: auto; }
+
+/* Role selector */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.role { min-height: 160px; flex-direction: column; font-size: 24px; font-family: var(--font-display); padding: 20px; text-align: center; }
+.role small { font-family: var(--font); font-weight: 400; font-size: 15px; color: var(--muted); }
+.role.gold small { color: var(--gold-ink); }
+
+/* Setup checklist */
+.steps { list-style: none; padding: 0; margin: 0; }
+.steps li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.steps li:last-child { border-bottom: 0; }
+
+/* Connection banner (spec §7.4) */
+.conn-banner { position: sticky; top: 0; z-index: 20; background: var(--red); color: #fff; padding: 10px 16px; font-weight: 700; text-align: center; }
+[hidden] { display: none !important; }
+
+/* Stat tiles shared by the TV and the admin dashboard */
+.tile { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; text-align: center; }
+.tile .k { color: var(--muted); font-size: 14px; font-weight: 600; }
+.tile .v { font-family: var(--font-display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.tile .s { color: var(--muted); font-size: 12px; font-weight: 600; }
