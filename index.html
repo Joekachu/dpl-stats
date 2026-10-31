@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>DPL Stats</title>
+  <link rel="stylesheet" href="app.css">
+  <style>
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .lock { max-width: 420px; margin: 8vh auto 0; text-align: center; }
+    .lock form { text-align: left; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tabs button.on { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+    .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+    .list button { justify-content: flex-start; min-height: 52px; }
+    .head { display: flex; gap: 16px; align-items: center; }
+    .avatar { width: 72px; height: 72px; border-radius: 50%; border: 3px solid var(--gold); display: grid; place-items: center; font-size: 36px; color: var(--gold); background: var(--bg-2); flex: none; }
+    .tiles4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (max-width: 600px) { .tiles4 { grid-template-columns: repeat(2, 1fr); } }
+    .tile .v { font-size: 28px; }
+    .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
+    .kv dt { color: var(--muted); }
+    .kv dd { margin: 0; font-weight: 700; text-align: right; }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th { color: var(--muted); font-size: 13px; }
+    td.n, th.n { text-align: right; }
+    tr[data-p] { cursor: pointer; }
+    .err { color: var(--red-hi); font-weight: 700; min-height: 1.4em; }
+    .check { display: flex; gap: 10px; align-items: center; font-weight: 600; margin-top: 12px; }
+    .check input { width: 22px; height: 22px; }
+  </style>
+</head>
+<body>
+  <main class="wrap stack">
+    <div class="top">
+      <img class="logo" src="logo.svg" alt="DPL, Duggleby Poker League">
+      <button id="forget" hidden>Lock</button>
+    </div>
+    <section id="lock" class="lock panel stack" hidden>
+      <h1>Duggleby Poker League stats</h1>
+      <form id="unlock" class="stack">
+        <label for="pw">League password</label>
+        <input id="pw" type="password" autocomplete="current-password" required>
+        <label class="check"><input id="remember" type="checkbox"> Remember on this device</label>
+        <p class="err" id="err" role="alert"></p>
+        <button class="primary" id="go" type="submit">Unlock</button>
+      </form>
+      <p class="muted">Ask the league admin for the password.</p>
+    </section>
+    <section id="app" class="stack" hidden></section>
+  </main>
+  <script src="site.js"></script>
+</body>
+</html>
