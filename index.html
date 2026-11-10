@@ -31,6 +31,11 @@
     .err { color: var(--red-hi); font-weight: 700; min-height: 1.4em; }
     .check { display: flex; gap: 10px; align-items: center; font-weight: 600; margin-top: 12px; }
     .check input { width: 22px; height: 22px; }
+    .hofgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .hofrow { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); cursor: pointer; }
+    .hofrow .rk { font-weight: 800; color: var(--muted); }
+    .hofrow .v { font-weight: 800; font-size: 20px; text-align: right; }
+    .hofrow.first .rk, .hofrow.first .v { color: var(--gold); }
   </style>
 </head>
 <body>
