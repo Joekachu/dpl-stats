@@ -90,8 +90,8 @@
   }
 
   function render() {
-    const tabs = [["standings", "Standings"], ["players", "Players"], ["seasons", "Seasons"], ["hof", "Hall of Fame"]];
-    const body = view.player != null ? profile(view.player) : { standings, players, seasons, hof }[view.tab]();
+    const tabs = [["standings", "Standings"], ["race", "Race"], ["players", "Players"], ["seasons", "Seasons"], ["hof", "Hall of Fame"]];
+    const body = view.player != null ? profile(view.player) : { standings, race, players, seasons, hof }[view.tab]();
     $("app").innerHTML = `
       <div class="tabs">${tabs.map(([k, l]) => `<button data-tab="${k}" class="${k === view.tab && view.player == null ? "on" : ""}">${l}</button>`).join("")}</div>
       ${body}
@@ -119,6 +119,46 @@
         <td>${r.tied ? "T" : ""}${r.rank}</td><td><b>${esc(r.display_name)}</b></td><td class="n"><b class="gold">${r.points}</b></td>
         <td class="n">${r.games_played}</td><td class="n">${r.wins}</td><td class="n">${r.itm}</td><td class="n">${r.knockouts}</td><td class="n">${r.rebuys}</td>
         <td class="n">${r.avg_finish ?? "–"}</td>${m ? `<td class="n">${money(r.winnings_cents)}</td>` : ""}</tr>`).join("") || `<tr><td colspan="10" class="muted">No players yet.</td></tr>`}</tbody></table></div>
+    </div>`;
+  }
+
+  // The Championship Race: each top-8 player's cumulative league points after every finalized game
+  // (the same chart and colours as the TV during breaks). Finalized results only.
+  function race() {
+    const list = data.seasons.filter((x) => x.race);
+    if (!list.length) return `<div class="panel"><p class="muted">The race starts once the first league game of a season is finalized.</p></div>`;
+    const s = list.find((x) => x.id === view.season) || list[0], r = s.race;
+    // Drawn at the screen's real width (1 unit = 1 px) so the labels stay readable on phones.
+    const W = Math.max(280, Math.min(900, ($("app").clientWidth || 480) - 34)), H = Math.round(Math.min(340, Math.max(220, W * 0.6)));
+    const L = 36, R = 12, T = 10, B = 30;
+    const n = Math.max(r.game_target || 0, r.games[r.games.length - 1] || 1);
+    const max = Math.max(1, ...r.players.map((p) => p.points[p.points.length - 1] || 0));
+    const raw = max / 5, mag = 10 ** Math.floor(Math.log10(raw));
+    const step = Math.max(1, [1, 2, 2.5, 5, 10].map((k) => k * mag).find((v) => v >= raw));
+    const top = Math.ceil(max / step) * step;
+    const x = (g) => L + ((W - L - R) * g) / n, y = (v) => T + (H - T - B) * (1 - v / top);
+    const every = Math.ceil(n / 10);
+    let svg = "";
+    for (let v = 0; v <= top + 1e-9; v += step)
+      svg += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${+v.toFixed(1)}</text>`;
+    for (let g = 1; g <= n; g++)
+      if (g % every === 0 || g === 1) svg += `<text x="${x(g)}" y="${H - B + 16}" text-anchor="middle">${g}</text>`;
+    svg += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle">League game</text>`;
+    for (const p of [...r.players].reverse()) {  // the leader is drawn last, on top
+      const pts = [[0, 0], ...r.games.map((g, i) => [g, p.points[i]])];
+      const [lx, ly] = pts[pts.length - 1];
+      svg += `<polyline points="${pts.map(([g, v]) => `${x(g).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}" stroke="${p.colour}"/>
+        <circle cx="${x(lx)}" cy="${y(ly)}" r="4" fill="${p.colour}"/>`;
+    }
+    return `<div class="panel stack">
+      <div class="top"><h2 style="margin:0">${esc(s.name)} Championship Race</h2>
+        <select id="season" style="width:auto" aria-label="Season">${list.map((x) => `<option value="${x.id}" ${x.id === s.id ? "selected" : ""}>${esc(x.name)}${x.status === "closed" ? " (closed)" : ""}</option>`).join("")}</select></div>
+      <p class="muted">Points after each of the ${s.games_finalized} league games played so far (of ${s.game_target}). Top 8 only; everyone is in the Standings.</p>
+      <svg class="race" viewBox="0 0 ${W} ${H}" role="img" aria-label="Cumulative points per league game">${svg}</svg>
+      <table><thead><tr><th>#</th><th>Player</th><th class="n">Points</th><th class="n">Behind</th></tr></thead>
+      <tbody>${r.players.map((p) => `<tr data-p="${p.player_id}"><td>${p.tied ? "T" : ""}${p.rank}</td>
+        <td><span class="sw" style="background:${p.colour}"></span><b>${esc(p.name)}</b></td>
+        <td class="n"><b class="gold">${p.total}</b></td><td class="n">${p.behind ? `−${p.behind}` : "Leader"}</td></tr>`).join("")}</tbody></table>
     </div>`;
   }
 
@@ -181,6 +221,13 @@
       </div>`;
     }).join("") || `<div class="panel"><p class="muted">No seasons yet.</p></div>`;
   }
+
+  // Redraw the race chart at the new width when a phone is turned.
+  let resized;
+  window.addEventListener("resize", () => {
+    clearTimeout(resized);
+    resized = setTimeout(() => { if (data && view.tab === "race" && view.player == null) render(); }, 250);
+  });
 
   start();
 })();
