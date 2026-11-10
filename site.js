@@ -90,8 +90,8 @@
   }
 
   function render() {
-    const tabs = [["standings", "Standings"], ["players", "Players"], ["seasons", "Seasons"]];
-    const body = view.player != null ? profile(view.player) : { standings, players, seasons }[view.tab]();
+    const tabs = [["standings", "Standings"], ["players", "Players"], ["seasons", "Seasons"], ["hof", "Hall of Fame"]];
+    const body = view.player != null ? profile(view.player) : { standings, players, seasons, hof }[view.tab]();
     $("app").innerHTML = `
       <div class="tabs">${tabs.map(([k, l]) => `<button data-tab="${k}" class="${k === view.tab && view.player == null ? "on" : ""}">${l}</button>`).join("")}</div>
       ${body}
@@ -148,6 +148,22 @@
           <tr><td>${esc(s.season_name)}${s.historical ? ` <span class="badge">historical</span>` : ""}</td><td class="n">${s.rank ? (s.tied ? "T" : "") + s.rank : "–"}</td><td class="n">${s.points}</td><td class="n">${s.games_played}</td><td class="n">${s.wins}</td></tr>`).join("")}</tbody></table></div>` : ""}
         <p class="muted">${esc(p.note)}</p>
       </div>`;
+  }
+
+  // The league's all-time records (no pictures on the website).
+  function hof() {
+    const recs = data.hall_of_fame || [], ord = { 1: "1st", 2: "2nd", 3: "3rd" };
+    if (!recs.length) return `<div class="panel"><p class="muted">No records yet.</p></div>`;
+    return `<div class="hofgrid">${recs.map((r) => `
+      <div class="panel stack" style="gap:6px"><h2 style="margin:0;font-size:20px">${esc(r.title)}</h2>
+        <p class="muted" style="margin:0;font-size:13px">${esc(r.note)}</p>
+        ${r.leaders.length ? r.leaders.map((x) => `
+          <div class="hofrow ${x.rank === 1 ? "first" : ""}" data-p="${x.player_id}">
+            <span class="rk">${ord[x.rank] || x.rank}</span>
+            <span><b>${esc(x.name)}</b>${x.detail ? `<br><span class="muted" style="font-size:12px">${esc(x.detail)}</span>` : ""}</span>
+            <span class="v">${esc(x.display)}${x.display.endsWith("%") ? "" : ` <span class="muted" style="font-size:12px">${esc(r.unit)}</span>`}</span>
+          </div>`).join("") : `<p class="muted">No record yet.</p>`}
+      </div>`).join("")}</div>`;
   }
 
   function seasons() {
