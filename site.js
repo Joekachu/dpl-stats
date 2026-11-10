@@ -90,15 +90,14 @@
   }
 
   function render() {
-    const tabs = [["standings", "Standings"], ["race", "Race"], ["h2h", "Head to Head"], ["players", "Players"], ["seasons", "Seasons"], ["hof", "Hall of Fame"]];
-    const body = view.player != null ? profile(view.player) : { standings, race, h2h, players, seasons, hof }[view.tab]();
+    const tabs = [["standings", "Standings"], ["race", "Race"], ["players", "Players"], ["seasons", "Seasons"], ["hof", "Hall of Fame"]];
+    const body = view.player != null ? profile(view.player) : { standings, race, players, seasons, hof }[view.tab]();
     $("app").innerHTML = `
       <div class="tabs">${tabs.map(([k, l]) => `<button data-tab="${k}" class="${k === view.tab && view.player == null ? "on" : ""}">${l}</button>`).join("")}</div>
       ${body}
       <p class="muted">Updated ${new Date(data.generated_at).toLocaleString()}. Only finalized games count.</p>`;
     $("app").querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { view.tab = b.dataset.tab; view.player = null; render(); }));
     $("app").querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { view.player = Number(b.dataset.p); render(); window.scrollTo(0, 0); }));
-    for (const k of ["h2a", "h2b"]) if ($(k)) $(k).onchange = () => { view[k] = Number($(k).value); render(); };
     const sel = $("season");
     if (sel) sel.onchange = () => { view.season = Number(sel.value); render(); };
     const q = $("q");
@@ -160,49 +159,6 @@
       <tbody>${r.players.map((p) => `<tr data-p="${p.player_id}"><td>${p.tied ? "T" : ""}${p.rank}</td>
         <td><span class="sw" style="background:${p.colour}"></span><b>${esc(p.name)}</b></td>
         <td class="n"><b class="gold">${p.total}</b></td><td class="n">${p.behind ? `−${p.behind}` : "Leader"}</td></tr>`).join("")}</tbody></table>
-    </div>`;
-  }
-
-  // Head to Head: any two players side by side (the TV's Heads-Up Showdown, without money).
-  function h2h() {
-    const H = data.head_to_head || { players: {}, pairs: {} };
-    const list = data.players.map((p) => p.player).filter((p) => H.players[p.id]);
-    if (list.length < 2) return `<div class="panel"><p class="muted">Head to Head starts once two players have finished a game.</p></div>`;
-    if (!list.some((p) => p.id === view.h2a) || !list.some((p) => p.id === view.h2b)) {
-      // Default: the top two of the current standings, else the first two players.
-      const st = (data.seasons.find((s) => s.status !== "closed") || data.seasons[0] || { standings: [] }).standings
-        .map((r) => r.player_id).filter((id) => H.players[id]);
-      const ids = [...st, ...list.map((p) => p.id)].filter((v, i, a) => a.indexOf(v) === i);
-      if (!list.some((p) => p.id === view.h2a)) view.h2a = ids.find((id) => id !== view.h2b);
-      if (!list.some((p) => p.id === view.h2b)) view.h2b = ids.find((id) => id !== view.h2a);
-    }
-    const a = view.h2a, b = view.h2b;
-    const pick = (id, other) => `<select id="${id}" aria-label="Player">${list.map((p) => `<option value="${p.id}" ${p.id === view[id] ? "selected" : ""} ${p.id === other ? "disabled" : ""}>${esc(p.display_name)}</option>`).join("")}</select>`;
-    const name = (id) => esc(list.find((p) => p.id === id).display_name);
-    const A = H.players[a], B = H.players[b];
-    const d = H.pairs[`${Math.min(a, b)}-${Math.max(a, b)}`] || { games: 0, a_higher: 0, b_higher: 0, kos_ab: 0, kos_ba: 0 };
-    const aFirst = a < b, side = (x, y) => (aFirst ? [x, y] : [y, x]);
-    const [koA, koB] = side(d.kos_ab, d.kos_ba), [hiA, hiB] = side(d.a_higher, d.b_higher);
-    const wins = (p) => p.wins_league + p.wins_casual + p.wins_historical;
-    const wsub = (p) => [`${p.wins_league} league`, `${p.wins_casual} casual`, p.wins_historical ? `${p.wins_historical} historical` : ""].filter(Boolean).join(" · ");
-    const hu = (p) => (p.hu_matches ? `${p.hu_wins}–${p.hu_matches - p.hu_wins}` : "–");
-    // One row: left value, label, right value; the bigger number is gold.
-    const row = (label, va, vb, na, nb, sa = "", sb = "") => `<div class="h2row">
-        <div class="${na > nb ? "lead" : ""}"><div class="v">${va}</div>${sa ? `<div class="s">${sa}</div>` : ""}</div>
-        <div class="k">${label}</div>
-        <div class="${nb > na ? "lead" : ""}"><div class="v">${vb}</div>${sb ? `<div class="s">${sb}</div>` : ""}</div></div>`;
-    return `<div class="panel stack">
-      <h2 style="margin:0">Head to Head</h2>
-      <div class="h2pick">${pick("h2a", b)}<span class="vs">vs</span>${pick("h2b", a)}</div>
-      <div class="h2row names"><div><b>${name(a)}</b></div><div></div><div><b>${name(b)}</b></div></div>
-      ${row(`Knocked out the other`, koA, koB, koA, koB)}
-      ${row(`Finished higher<br><span class="muted">in ${d.games} game${d.games === 1 ? "" : "s"} together</span>`, hiA, hiB, hiA, hiB)}
-      ${row("Heads-up record<br><span class=\"muted\">won–lost, all opponents</span>", hu(A), hu(B), A.hu_pct ?? -1, B.hu_pct ?? -1,
-            A.hu_pct != null ? `${A.hu_pct}%` : "", B.hu_pct != null ? `${B.hu_pct}%` : "")}
-      ${row("Career wins", wins(A), wins(B), wins(A), wins(B), wsub(A), wsub(B))}
-      ${row("Games played", A.games, B.games, 0, 0)}
-      <p class="muted" style="margin:0">Finalized games recorded in the app; career wins also count historical records.
-        Heads-up means finishing 1st or 2nd.</p>
     </div>`;
   }
 
