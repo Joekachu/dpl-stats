@@ -182,7 +182,7 @@
         <div class="tiles4">${tile("Games", p.games_played)}${tile("Wins", p.first_places)}${tile("Knockouts", p.knockouts)}${tile("Avg Finish", p.avg_finish ?? "–")}</div>
         <div class="tiles4">${tile("ITM Finishes", p.itm_finishes)}${tile("Current ITM Streak", p.current_itm_streak)}${tile("Longest ITM Streak", p.longest_itm_streak)}${tile("Most KOs in a Game", p.most_knockouts_in_game)}</div>
         ${w ? `<dl class="kv"><dt>Winnings: league</dt><dd>${money(w.official_cents)}</dd><dt>Winnings: casual</dt><dd>${money(w.casual_cents)}</dd>
-          ${p.has_historical ? `<dt>Winnings: historical</dt><dd>${money(w.historical_cents)}</dd>` : ""}<dt>Total</dt><dd>${money(w.total_cents)}</dd></dl>` : ""}
+          ${w.historical_cents ? `<dt>Winnings: historical</dt><dd>${money(w.historical_cents)}</dd>` : ""}<dt>Total</dt><dd>${money(w.total_cents)}</dd></dl>` : ""}
         <dl class="kv"><dt>Rebuys</dt><dd>${p.rebuys}</dd></dl>
         ${p.seasons.length ? `<h3>Seasons</h3><div class="scroll"><table><thead><tr><th>Season</th><th class="n">Rank</th><th class="n">Points</th><th class="n">Games</th><th class="n">Wins</th></tr></thead><tbody>${p.seasons.map((s) => `
           <tr><td>${esc(s.season_name)}${s.historical ? ` <span class="badge">historical</span>` : ""}</td><td class="n">${s.rank ? (s.tied ? "T" : "") + s.rank : "–"}</td><td class="n">${s.points}</td><td class="n">${s.games_played}</td><td class="n">${s.wins}</td></tr>`).join("")}</tbody></table></div>` : ""}
